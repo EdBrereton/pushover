@@ -1,44 +1,70 @@
+// A package to interface with the Pushover.net service
 package pushover
 
 import "net/url"
 import "net/http"
 import "fmt"
+import "encoding/json"
+import "io/ioutil"
 
+// PushOverMessage is the basic message type used to construct messages
+// to send via the pushover service
 type PushOverMessage struct {
 	Token     string
 	User      string
 	Message   string
 	Device    string
 	Title     string
-	Url       url.URL
+	Url       *url.URL
 	Url_title string
-	Priority  int
+	Priority  PushoverPriority
 	Timestamp string
 	Sound     PushoverSound
 }
 
-func (m *PushOverMessage) Send() (err AssembleError) {
+// Send is the method used to send the generated message.
+// The response from the service is returned, along with an error code
+func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
 	val, err := m.assemble()
-	if err != errNoError {
+	if err != ErrNoError {
 		return
 	}
 
-	http.PostForm("https://api.pushover.net/1/messages.json", val)
+	response, postErr := http.PostForm("https://api.pushover.net/1/messages.json", val)
+	if postErr != nil {
+		err = ErrSendFail
+		return
+	}
+
+	defer response.Body.Close()
+
+	data, postErr := ioutil.ReadAll(response.Body)
+	if postErr != nil {
+		err = ErrSendFail
+		return
+	}
+
+	postErr = json.Unmarshal(data, &reply)
+	if postErr != nil {
+		err = ErrJsonFail
+		return
+	}
 
 	return
 }
 
+// Assemble is used to generate the URL values from the populated pushovermessage
 func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 	if m.Token == "" {
-		err = errNoToken
+		err = ErrNoToken
 	}
 
 	if m.User == "" {
-		err = errNoUser
+		err = ErrNoUser
 	}
 
 	if m.Message == "" {
-		err = errNoMsg
+		err = ErrNoMsg
 	}
 
 	msg = url.Values{}
@@ -62,7 +88,7 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		msg.Add("url_title", m.Url_title)
 	}
 
-	if m.Priority != 0 {
+	if m.Priority != PpNormal {
 		msg.Add("priority", fmt.Sprintf("%d", m.Priority))
 	}
 
@@ -70,7 +96,7 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		msg.Add("timestamp", m.Timestamp)
 	}
 
-	if m.Sound != PsPushover {
+	if m.Sound != PsDefault {
 		msg.Add("sound", m.Sound.String())
 	}
 

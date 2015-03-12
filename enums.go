@@ -1,18 +1,35 @@
 package pushover
 
+// AssembleError represents any errors occurring within the
+// pushover message generation
 type AssembleError int
 
 const (
-	errNoError AssembleError = 0 << iota
-	errNoToken
-	errNoUser
-	errNoMsg
+	ErrNoError AssembleError = iota
+	ErrNoToken
+	ErrNoUser
+	ErrNoMsg
+	ErrSendFail
+	ErrJsonFail
 )
 
+// PushoverPriority represents the priority applied to the message
+type PushoverPriority int
+
+const (
+	PpLowest PushoverPriority = iota - 2
+	PpLow
+	PpNormal
+	PpHigh
+	PpEmergency
+)
+
+// PushoverSound represents the audio alert to be used for the alert
 type PushoverSound int
 
 const (
-	PsPushover PushoverSound = 0 << iota
+	PsDefault PushoverSound = iota
+	PsPushover
 	PsBike
 	PsBugle
 	PsCashregister
@@ -36,8 +53,10 @@ const (
 	PsNone
 )
 
+// String is used to convert PushoverSound to an apropriate value
+// for pushover.net
 func (p PushoverSound) String() string {
-	sounds := [...]string{"pushover", "bike", "bugle", "cashregister",
+	sounds := [...]string{"", "pushover", "bike", "bugle", "cashregister",
 		"classical", "cosmic", "falling", "gamelan", "incoming", "intermission",
 		"magic", "mechanical", "pianobar", "siren", "spacealarm", "tugboat",
 		"alien", "climb", "persistent", "echo", "updown", "none"}
