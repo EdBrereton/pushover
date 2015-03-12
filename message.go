@@ -80,8 +80,10 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		msg.Add("title", m.Title)
 	}
 
-	if m.Url.String() != "" {
-		msg.Add("url", m.Url.String())
+	if m.Url != nil {
+		if m.Url.String() != "" {
+			msg.Add("url", m.Url.String())
+		}
 	}
 
 	if m.Url_title != "" {
