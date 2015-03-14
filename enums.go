@@ -9,8 +9,19 @@ const (
 	ErrNoToken
 	ErrNoUser
 	ErrNoMsg
+	ErrNoRetry
+	ErrNoExpire
 	ErrSendFail
 	ErrJsonFail
+	ErrMsgTooLong
+	ErrDeviceTooLong
+	ErrTitleTooLong
+	ErrUrlTitleTooLong
+	ErrUrlTooLong
+	ErrInvalidToken
+	ErrInvalidUser
+	ErrInvalidRetry
+	ErrInvalidExpire
 )
 
 // PushoverPriority represents the priority applied to the message

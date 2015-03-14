@@ -6,6 +6,7 @@ import "net/http"
 import "fmt"
 import "encoding/json"
 import "io/ioutil"
+import "time"
 
 // PushOverMessage is the basic message type used to construct messages
 // to send via the pushover service
@@ -18,8 +19,12 @@ type PushOverMessage struct {
 	Url       *url.URL
 	Url_title string
 	Priority  PushoverPriority
-	Timestamp string
+	Timestamp time.Time
 	Sound     PushoverSound
+	Retry     int
+	Expire    int
+	Html      bool
+	Callback  *url.URL
 }
 
 // Send is the method used to send the generated message.
@@ -53,18 +58,122 @@ func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
 	return
 }
 
-// Assemble is used to generate the URL values from the populated pushovermessage
-func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
+func (m *PushOverMessage) checkLengths() (err AssembleError) {
+	if len(m.Message) > 1024 {
+		err = ErrMsgTooLong
+		return
+	}
+
+	if len(m.Device) > 25 {
+		err = ErrDeviceTooLong
+		return
+	}
+
+	if len(m.Title) > 250 {
+		err = ErrTitleTooLong
+		return
+	}
+
+	if len(m.Url_title) > 100 {
+		err = ErrUrlTitleTooLong
+		return
+	}
+
+	if m.Url != nil {
+		if len(m.Url.String()) > 512 {
+			err = ErrUrlTooLong
+			return
+		}
+	}
+
+	return
+}
+
+func (m *PushOverMessage) checkValid() (err AssembleError) {
+	if len(m.Token) != 30 {
+		err = ErrInvalidToken
+		return
+	}
+
+	if len(m.User) != 30 {
+		err = ErrInvalidUser
+		return
+	}
+
+	if m.Retry != 0 && m.Retry < 30 {
+		err = ErrInvalidRetry
+		return
+	}
+
+	if m.Expire > 86400 {
+		err = ErrInvalidExpire
+		return
+	}
+
+	return
+}
+
+func (m *PushOverMessage) checkMandatory() (err AssembleError) {
 	if m.Token == "" {
 		err = ErrNoToken
+		return
 	}
 
 	if m.User == "" {
 		err = ErrNoUser
+		return
 	}
 
 	if m.Message == "" {
 		err = ErrNoMsg
+		return
+	}
+
+	if m.Priority == PpEmergency {
+		if m.Retry == 0 {
+			err = ErrNoRetry
+			return
+		}
+
+		if m.Expire == 0 {
+			err = ErrNoExpire
+			return
+		}
+
+	}
+
+	return
+}
+
+// Validate is used to validate that required fields are filled, and all fields are
+// within acceptable ranges
+func (m *PushOverMessage) validate() (err AssembleError) {
+
+	err = m.checkMandatory()
+	if err != ErrNoError {
+		return
+	}
+
+	err = m.checkLengths()
+	if err != ErrNoError {
+		return
+	}
+
+	err = m.checkValid()
+	if err != ErrNoError {
+		return
+	}
+
+	return
+
+}
+
+// Assemble is used to generate the URL values from the populated pushovermessage
+func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
+
+	err = m.validate()
+	if err != ErrNoError {
+		return
 	}
 
 	msg = url.Values{}
@@ -86,6 +195,12 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		}
 	}
 
+	if m.Callback != nil {
+		if m.Callback.String() != "" {
+			msg.Add("callback", m.Callback.String())
+		}
+	}
+
 	if m.Url_title != "" {
 		msg.Add("url_title", m.Url_title)
 	}
@@ -94,8 +209,8 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		msg.Add("priority", fmt.Sprintf("%d", m.Priority))
 	}
 
-	if m.Timestamp != "" {
-		msg.Add("timestamp", m.Timestamp)
+	if !m.Timestamp.IsZero() {
+		msg.Add("timestamp", fmt.Sprintf("%d", m.Timestamp.Unix()))
 	}
 
 	if m.Sound != PsDefault {
