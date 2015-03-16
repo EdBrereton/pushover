@@ -123,6 +123,28 @@ func TestMessageCheckLengths_Url(t *testing.T) {
 	}
 }
 
+func TestMessageCheckLengths_Callback(t *testing.T) {
+
+	message := PushOverMessage{}
+	message.Token = TEST_TOKEN
+	message.User = TEST_USER
+	message.Message = "Message"
+
+	var address string
+	address = "http://www."
+	for i := 0; i < 500; i++ {
+		address = address + "X"
+	}
+	address = address + ".com"
+
+	message.Callback, _ = url.Parse(address)
+
+	err := message.TestCheckLengths()
+	if err != ErrCallbackTooLong {
+		t.Error("Callback length not checked correctly")
+	}
+}
+
 func TestMessageCheckValid_Token(t *testing.T) {
 
 	message := PushOverMessage{}
@@ -243,39 +265,50 @@ func TestMessageCheckMandatory_Expire(t *testing.T) {
 	}
 }
 
-func TestMessageAssemble_NoToken(t *testing.T) {
+func TestMessageAssemble_MandatoryError(t *testing.T) {
 
 	message := PushOverMessage{}
 	message.User = TEST_USER
 	message.Message = "Message"
 
 	_, err := message.TestAssemble()
-	if err != ErrNoToken {
-		t.Error("Token not checked correctly")
+	if err == ErrNoError {
+		t.Error("Minimal Message not checked on assembly correctly (checkMandatory)")
 	}
 }
 
-func TestMessageAssemble_NoUser(t *testing.T) {
-
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.Message = "Message"
-
-	_, err := message.TestAssemble()
-	if err != ErrNoUser {
-		t.Error("User not checked correctly")
-	}
-}
-
-func TestMessageAssemble_NoMessage(t *testing.T) {
+func TestMessageAssemble_LengthError(t *testing.T) {
 
 	message := PushOverMessage{}
 	message.Token = TEST_TOKEN
 	message.User = TEST_USER
+	message.Message = "Message"
+
+	var address string
+	address = "http://www."
+	for i := 0; i < 500; i++ {
+		address = address + "X"
+	}
+	address = address + ".com"
+
+	message.Url, _ = url.Parse(address)
 
 	_, err := message.TestAssemble()
-	if err != ErrNoMsg {
-		t.Error("Message not checked correctly")
+	if err == ErrNoError {
+		t.Error("Minimal Message not checked on assembly correctly (checkLengths)")
+	}
+}
+
+func TestMessageAssemble_VadliityError(t *testing.T) {
+
+	message := PushOverMessage{}
+	message.Token = "0123456789012345678901234567890"
+	message.User = TEST_USER
+	message.Message = "Message"
+
+	_, err := message.TestAssemble()
+	if err == ErrNoError {
+		t.Error("Minimal Message not checked on assembly correctly (checkValid)")
 	}
 }
 
@@ -314,6 +347,7 @@ func TestMessageAssemble_FullMessage(t *testing.T) {
 	message.Priority = PpHigh
 	message.Title = "Title"
 	message.Sound = PsCosmic
+	message.Callback, _ = url.Parse("http://www.callback.com")
 	message.Url, _ = url.Parse("http://www.google.com")
 	message.Url_title = "Url_Title"
 	message.Timestamp = time.Unix(60, 0)
@@ -341,6 +375,10 @@ func TestMessageAssemble_FullMessage(t *testing.T) {
 
 	if vals.Get("title") != "Title" {
 		t.Error("Title not set correctly")
+	}
+
+	if vals.Get("callback") != "http://www.callback.com" {
+		t.Error("Callback not set correctly")
 	}
 
 	if vals.Get("url") != "http://www.google.com" {

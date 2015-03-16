@@ -9,7 +9,10 @@ import "io/ioutil"
 import "time"
 
 // PushOverMessage is the basic message type used to construct messages
-// to send via the pushover service
+// to send via the pushover service. The token, user and message are always
+// mandatory, while retry and expire are mandatory is the message priority is
+// PpEmergency. Missing a mandatory value will result in an error when trying
+// to send
 type PushOverMessage struct {
 	Token     string
 	User      string
@@ -28,7 +31,8 @@ type PushOverMessage struct {
 }
 
 // Send is the method used to send the generated message.
-// The response from the service is returned, along with an error code
+// The response from the service is returned, along with an error code to
+// indicate any issues encountered
 func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
 	val, err := m.assemble()
 	if err != ErrNoError {
@@ -58,6 +62,8 @@ func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
 	return
 }
 
+// CheckLengths checks the lengths of any fields in the message which have
+// a maximum length
 func (m *PushOverMessage) checkLengths() (err AssembleError) {
 	if len(m.Message) > 1024 {
 		err = ErrMsgTooLong
@@ -86,9 +92,18 @@ func (m *PushOverMessage) checkLengths() (err AssembleError) {
 		}
 	}
 
+	if m.Callback != nil {
+		if len(m.Callback.String()) > 512 {
+			err = ErrCallbackTooLong
+			return
+		}
+	}
+
 	return
 }
 
+// CheckValid performs some basic checks on values to ensure that basic
+// errors like missing characters in the token are caught before sending
 func (m *PushOverMessage) checkValid() (err AssembleError) {
 	if len(m.Token) != 30 {
 		err = ErrInvalidToken
@@ -113,6 +128,7 @@ func (m *PushOverMessage) checkValid() (err AssembleError) {
 	return
 }
 
+// CheckMandatory ensures that all fields that are required are present
 func (m *PushOverMessage) checkMandatory() (err AssembleError) {
 	if m.Token == "" {
 		err = ErrNoToken

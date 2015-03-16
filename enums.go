@@ -18,6 +18,7 @@ const (
 	ErrTitleTooLong
 	ErrUrlTitleTooLong
 	ErrUrlTooLong
+	ErrCallbackTooLong
 	ErrInvalidToken
 	ErrInvalidUser
 	ErrInvalidRetry
