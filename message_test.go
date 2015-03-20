@@ -5,40 +5,40 @@ import "net/url"
 import "time"
 
 const (
-	TEST_USER  = "987654321098765432109876543210"
-	TEST_TOKEN = "012345678901234567890123456789"
+	TestUser  = "987654321098765432109876543210"
+	TestToken = "012345678901234567890123456789"
 )
 
-func (m *PushOverMessage) TestAssemble() (msg url.Values, err AssembleError) {
+func (m *Message) TestAssemble() (msg url.Values, err AssembleError) {
 	msg, err = m.assemble()
 	return
 }
 
-func (m *PushOverMessage) TestValidate() (err AssembleError) {
+func (m *Message) TestValidate() (err AssembleError) {
 	err = m.validate()
 	return
 }
 
-func (m *PushOverMessage) TestCheckMandatory() (err AssembleError) {
+func (m *Message) TestCheckMandatory() (err AssembleError) {
 	err = m.checkMandatory()
 	return
 }
 
-func (m *PushOverMessage) TestCheckLengths() (err AssembleError) {
+func (m *Message) TestCheckLengths() (err AssembleError) {
 	err = m.checkLengths()
 	return
 }
 
-func (m *PushOverMessage) TestCheckValid() (err AssembleError) {
+func (m *Message) TestCheckValid() (err AssembleError) {
 	err = m.checkValid()
 	return
 }
 
 func TestMessageCheckLengths_Message(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = "TEST_USER"
+	message := Message{}
+	message.Token = TestToken
+	message.User = "TestUser"
 
 	for i := 0; i < 1025; i++ {
 		message.Message = message.Message + "X"
@@ -52,9 +52,9 @@ func TestMessageCheckLengths_Message(t *testing.T) {
 
 func TestMessageCheckLengths_Device(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	for i := 0; i < 31; i++ {
@@ -69,9 +69,9 @@ func TestMessageCheckLengths_Device(t *testing.T) {
 
 func TestMessageCheckLengths_Title(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	for i := 0; i < 251; i++ {
@@ -86,26 +86,26 @@ func TestMessageCheckLengths_Title(t *testing.T) {
 
 func TestMessageCheckLengths_UrlTitle(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	for i := 0; i < 101; i++ {
-		message.Url_title = message.Url_title + "X"
+		message.URLTitle = message.URLTitle + "X"
 	}
 
 	err := message.TestCheckLengths()
-	if err != ErrUrlTitleTooLong {
+	if err != ErrURLTitleTooLong {
 		t.Error("URL Title length not checked correctly")
 	}
 }
 
 func TestMessageCheckLengths_Url(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	var address string
@@ -115,19 +115,19 @@ func TestMessageCheckLengths_Url(t *testing.T) {
 	}
 	address = address + ".com"
 
-	message.Url, _ = url.Parse(address)
+	message.URL, _ = url.Parse(address)
 
 	err := message.TestCheckLengths()
-	if err != ErrUrlTooLong {
+	if err != ErrURLTooLong {
 		t.Error("URL length not checked correctly")
 	}
 }
 
 func TestMessageCheckLengths_Callback(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	var address string
@@ -147,9 +147,9 @@ func TestMessageCheckLengths_Callback(t *testing.T) {
 
 func TestMessageCheckValid_Token(t *testing.T) {
 
-	message := PushOverMessage{}
+	message := Message{}
 	message.Token = "0123456789012345678901234567890"
-	message.User = TEST_USER
+	message.User = TestUser
 	message.Message = "Message"
 
 	err := message.TestCheckValid()
@@ -160,8 +160,8 @@ func TestMessageCheckValid_Token(t *testing.T) {
 
 func TestMessageCheckValid_User(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
+	message := Message{}
+	message.Token = TestToken
 	message.User = "0123456789012345678901234567890"
 	message.Message = "Message"
 
@@ -173,9 +173,9 @@ func TestMessageCheckValid_User(t *testing.T) {
 
 func TestMessageCheckValid_Retry(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 	message.Retry = 15
 
@@ -187,9 +187,9 @@ func TestMessageCheckValid_Retry(t *testing.T) {
 
 func TestMessageCheckValid_Expire(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 	message.Expire = 86401
 
@@ -201,8 +201,8 @@ func TestMessageCheckValid_Expire(t *testing.T) {
 
 func TestMessageCheckMandatory_Token(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.User = TEST_USER
+	message := Message{}
+	message.User = TestUser
 	message.Message = "Message"
 
 	err := message.TestCheckMandatory()
@@ -213,8 +213,8 @@ func TestMessageCheckMandatory_Token(t *testing.T) {
 
 func TestMessageCheckMandatory_User(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
+	message := Message{}
+	message.Token = TestToken
 	message.Message = "Message"
 
 	err := message.TestCheckMandatory()
@@ -225,9 +225,9 @@ func TestMessageCheckMandatory_User(t *testing.T) {
 
 func TestMessageCheckMandatory_Message(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 
 	err := message.TestCheckMandatory()
 	if err != ErrNoMsg {
@@ -237,9 +237,9 @@ func TestMessageCheckMandatory_Message(t *testing.T) {
 
 func TestMessageCheckMandatory_Retry(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 	message.Priority = PpEmergency
 	message.Expire = 300
@@ -252,9 +252,9 @@ func TestMessageCheckMandatory_Retry(t *testing.T) {
 
 func TestMessageCheckMandatory_Expire(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 	message.Priority = PpEmergency
 	message.Retry = 35
@@ -267,8 +267,8 @@ func TestMessageCheckMandatory_Expire(t *testing.T) {
 
 func TestMessageAssemble_MandatoryError(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.User = TEST_USER
+	message := Message{}
+	message.User = TestUser
 	message.Message = "Message"
 
 	_, err := message.TestAssemble()
@@ -279,9 +279,9 @@ func TestMessageAssemble_MandatoryError(t *testing.T) {
 
 func TestMessageAssemble_LengthError(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	var address string
@@ -291,7 +291,7 @@ func TestMessageAssemble_LengthError(t *testing.T) {
 	}
 	address = address + ".com"
 
-	message.Url, _ = url.Parse(address)
+	message.URL, _ = url.Parse(address)
 
 	_, err := message.TestAssemble()
 	if err == ErrNoError {
@@ -301,9 +301,9 @@ func TestMessageAssemble_LengthError(t *testing.T) {
 
 func TestMessageAssemble_VadliityError(t *testing.T) {
 
-	message := PushOverMessage{}
+	message := Message{}
 	message.Token = "0123456789012345678901234567890"
-	message.User = TEST_USER
+	message.User = TestUser
 	message.Message = "Message"
 
 	_, err := message.TestAssemble()
@@ -314,9 +314,9 @@ func TestMessageAssemble_VadliityError(t *testing.T) {
 
 func TestMessageAssemble_MinimalMessage(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 
 	vals, err := message.TestAssemble()
@@ -324,11 +324,11 @@ func TestMessageAssemble_MinimalMessage(t *testing.T) {
 		t.Error("Minimal Message not assembled correctly")
 	}
 
-	if vals.Get("token") != TEST_TOKEN {
+	if vals.Get("token") != TestToken {
 		t.Error("Token not set correctly")
 	}
 
-	if vals.Get("user") != TEST_USER {
+	if vals.Get("user") != TestUser {
 		t.Error("User not set correctly")
 	}
 
@@ -339,17 +339,17 @@ func TestMessageAssemble_MinimalMessage(t *testing.T) {
 
 func TestMessageAssemble_FullMessage(t *testing.T) {
 
-	message := PushOverMessage{}
-	message.Token = TEST_TOKEN
-	message.User = TEST_USER
+	message := Message{}
+	message.Token = TestToken
+	message.User = TestUser
 	message.Message = "Message"
 	message.Device = "Device"
 	message.Priority = PpHigh
 	message.Title = "Title"
 	message.Sound = PsCosmic
 	message.Callback, _ = url.Parse("http://www.callback.com")
-	message.Url, _ = url.Parse("http://www.google.com")
-	message.Url_title = "Url_Title"
+	message.URL, _ = url.Parse("http://www.google.com")
+	message.URLTitle = "Url_Title"
 	message.Timestamp = time.Unix(60, 0)
 
 	vals, err := message.TestAssemble()
@@ -357,11 +357,11 @@ func TestMessageAssemble_FullMessage(t *testing.T) {
 		t.Error("Full Message not assembled correctly")
 	}
 
-	if vals.Get("token") != TEST_TOKEN {
+	if vals.Get("token") != TestToken {
 		t.Error("Token not set correctly")
 	}
 
-	if vals.Get("user") != TEST_USER {
+	if vals.Get("user") != TestUser {
 		t.Error("User not set correctly")
 	}
 

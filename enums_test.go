@@ -4,7 +4,7 @@ import "testing"
 
 func TestPushoverSound(t *testing.T) {
 	cases := []struct {
-		in   PushoverSound
+		in   Sound
 		want string
 	}{
 		{PsDefault, ""},

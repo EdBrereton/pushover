@@ -1,4 +1,5 @@
-// A package to interface with the Pushover.net service
+// Package pushover is designed to interface with the Pushover.net service
+// by superblock
 package pushover
 
 import "net/url"
@@ -8,32 +9,32 @@ import "encoding/json"
 import "io/ioutil"
 import "time"
 
-// PushOverMessage is the basic message type used to construct messages
+// Message is the basic message type used to construct messages
 // to send via the pushover service. The token, user and message are always
 // mandatory, while retry and expire are mandatory is the message priority is
 // PpEmergency. Missing a mandatory value will result in an error when trying
 // to send
-type PushOverMessage struct {
+type Message struct {
 	Token     string
 	User      string
 	Message   string
 	Device    string
 	Title     string
-	Url       *url.URL
-	Url_title string
-	Priority  PushoverPriority
+	URL       *url.URL
+	URLTitle  string
+	Priority  Priority
 	Timestamp time.Time
-	Sound     PushoverSound
+	Sound     Sound
 	Retry     int
 	Expire    int
-	Html      bool
+	HTML      bool
 	Callback  *url.URL
 }
 
 // Send is the method used to send the generated message.
 // The response from the service is returned, along with an error code to
 // indicate any issues encountered
-func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
+func (m *Message) Send() (reply Response, err AssembleError) {
 	val, err := m.assemble()
 	if err != ErrNoError {
 		return
@@ -55,7 +56,7 @@ func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
 
 	postErr = json.Unmarshal(data, &reply)
 	if postErr != nil {
-		err = ErrJsonFail
+		err = ErrJSONFail
 		return
 	}
 
@@ -64,7 +65,7 @@ func (m *PushOverMessage) Send() (reply Response, err AssembleError) {
 
 // CheckLengths checks the lengths of any fields in the message which have
 // a maximum length
-func (m *PushOverMessage) checkLengths() (err AssembleError) {
+func (m *Message) checkLengths() (err AssembleError) {
 	if len(m.Message) > 1024 {
 		err = ErrMsgTooLong
 		return
@@ -80,14 +81,14 @@ func (m *PushOverMessage) checkLengths() (err AssembleError) {
 		return
 	}
 
-	if len(m.Url_title) > 100 {
-		err = ErrUrlTitleTooLong
+	if len(m.URLTitle) > 100 {
+		err = ErrURLTitleTooLong
 		return
 	}
 
-	if m.Url != nil {
-		if len(m.Url.String()) > 512 {
-			err = ErrUrlTooLong
+	if m.URL != nil {
+		if len(m.URL.String()) > 512 {
+			err = ErrURLTooLong
 			return
 		}
 	}
@@ -104,7 +105,7 @@ func (m *PushOverMessage) checkLengths() (err AssembleError) {
 
 // CheckValid performs some basic checks on values to ensure that basic
 // errors like missing characters in the token are caught before sending
-func (m *PushOverMessage) checkValid() (err AssembleError) {
+func (m *Message) checkValid() (err AssembleError) {
 	if len(m.Token) != 30 {
 		err = ErrInvalidToken
 		return
@@ -129,7 +130,7 @@ func (m *PushOverMessage) checkValid() (err AssembleError) {
 }
 
 // CheckMandatory ensures that all fields that are required are present
-func (m *PushOverMessage) checkMandatory() (err AssembleError) {
+func (m *Message) checkMandatory() (err AssembleError) {
 	if m.Token == "" {
 		err = ErrNoToken
 		return
@@ -163,7 +164,7 @@ func (m *PushOverMessage) checkMandatory() (err AssembleError) {
 
 // Validate is used to validate that required fields are filled, and all fields are
 // within acceptable ranges
-func (m *PushOverMessage) validate() (err AssembleError) {
+func (m *Message) validate() (err AssembleError) {
 
 	err = m.checkMandatory()
 	if err != ErrNoError {
@@ -184,8 +185,8 @@ func (m *PushOverMessage) validate() (err AssembleError) {
 
 }
 
-// Assemble is used to generate the URL values from the populated pushovermessage
-func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
+// Assemble is used to generate the URL values from the populated Message
+func (m *Message) assemble() (msg url.Values, err AssembleError) {
 
 	err = m.validate()
 	if err != ErrNoError {
@@ -205,9 +206,9 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		msg.Add("title", m.Title)
 	}
 
-	if m.Url != nil {
-		if m.Url.String() != "" {
-			msg.Add("url", m.Url.String())
+	if m.URL != nil {
+		if m.URL.String() != "" {
+			msg.Add("url", m.URL.String())
 		}
 	}
 
@@ -217,8 +218,8 @@ func (m *PushOverMessage) assemble() (msg url.Values, err AssembleError) {
 		}
 	}
 
-	if m.Url_title != "" {
-		msg.Add("url_title", m.Url_title)
+	if m.URLTitle != "" {
+		msg.Add("url_title", m.URLTitle)
 	}
 
 	if m.Priority != PpNormal {

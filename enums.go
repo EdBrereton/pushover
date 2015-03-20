@@ -4,6 +4,7 @@ package pushover
 // pushover message generation
 type AssembleError int
 
+// These are the valid values of AssembleError
 const (
 	ErrNoError AssembleError = iota
 	ErrNoToken
@@ -12,12 +13,12 @@ const (
 	ErrNoRetry
 	ErrNoExpire
 	ErrSendFail
-	ErrJsonFail
+	ErrJSONFail
 	ErrMsgTooLong
 	ErrDeviceTooLong
 	ErrTitleTooLong
-	ErrUrlTitleTooLong
-	ErrUrlTooLong
+	ErrURLTitleTooLong
+	ErrURLTooLong
 	ErrCallbackTooLong
 	ErrInvalidToken
 	ErrInvalidUser
@@ -25,22 +26,24 @@ const (
 	ErrInvalidExpire
 )
 
-// PushoverPriority represents the priority applied to the message
-type PushoverPriority int
+// Priority represents the priority applied to the message
+type Priority int
 
+// These are the valid values of Priority
 const (
-	PpLowest PushoverPriority = iota - 2
+	PpLowest Priority = iota - 2
 	PpLow
 	PpNormal
 	PpHigh
 	PpEmergency
 )
 
-// PushoverSound represents the audio alert to be used for the alert
-type PushoverSound int
+// Sound represents the audio alert to be used for the alert
+type Sound int
 
+//These are the valid values of Sound
 const (
-	PsDefault PushoverSound = iota
+	PsDefault Sound = iota
 	PsPushover
 	PsBike
 	PsBugle
@@ -65,9 +68,9 @@ const (
 	PsNone
 )
 
-// String is used to convert PushoverSound to an apropriate value
+// String is used to convert Sound to an apropriate value
 // for pushover.net
-func (p PushoverSound) String() string {
+func (p Sound) String() string {
 	sounds := [...]string{"", "pushover", "bike", "bugle", "cashregister",
 		"classical", "cosmic", "falling", "gamelan", "incoming", "intermission",
 		"magic", "mechanical", "pianobar", "siren", "spacealarm", "tugboat",
